@@ -157,7 +157,7 @@ export default function Pagos() {
             
             <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
               <FiDownload />
-              <span className="hidden sm:inline">Exportar</span>
+              <span className="">Exportar</span>
             </button>
           </div>
         </div>

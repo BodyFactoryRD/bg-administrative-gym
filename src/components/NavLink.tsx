@@ -7,9 +7,10 @@ interface NavLinkProps {
   href: string;
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
-export default function NavLink({ href, children, className = '' }: NavLinkProps) {
+export default function NavLink({ href, children, className = '', onClick }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = pathname === href;
   
@@ -21,6 +22,7 @@ export default function NavLink({ href, children, className = '' }: NavLinkProps
           ? 'bg-amber-400 text-black' 
           : 'hover:bg-gray-800'
       } ${className}`}
+      onClick={onClick}
     >
       {children}
     </Link>

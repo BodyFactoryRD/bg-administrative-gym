@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from "next/navigation"
-import { FaList, FaTh, FaSearch, FaFileExport, FaFilter } from 'react-icons/fa';
+import { FaList, FaTh, FaSearch, FaFileExport, FaFilter, FaPlus } from 'react-icons/fa';
+import { FiPlus } from 'react-icons/fi';
 
 export const CLIENTES = [
   {
@@ -80,7 +81,10 @@ export default function Clientes() {
   return (
     <>
       <div className="p-4 bg-gray-900 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold">Clientes</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Clientes</h1>
+          <p className="text-gray-400">Lista de clientes</p>
+        </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <div className="relative">
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -128,6 +132,11 @@ export default function Clientes() {
               <FaTh className="text-white" />
             </button>
           </div>
+
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white whitespace-nowrap" title="Nuevo Cliente">
+            <FaPlus />
+            <span className="hidden sm:inline">Nuevo Cliente</span>
+          </button>
           
           <button 
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white whitespace-nowrap"
