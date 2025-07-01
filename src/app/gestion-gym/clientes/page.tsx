@@ -148,68 +148,43 @@ export default function Clientes() {
         </div>
       </div>
       {viewMode === 'list' ? (
-        <div className="overflow-x-auto">
-          <div className="min-w-full">
-            {/* Encabezado de la tabla */}
-            <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-800/50 border-b border-gray-700 text-sm font-medium text-gray-300 uppercase tracking-wider">
-              <div className="col-span-3">Cliente</div>
-              <div className="col-span-2">Plan</div>
-              <div className="col-span-2">Sistema</div>
-              <div className="col-span-2">Entrenador</div>
-              <div className="text-right">Pago</div>
-              <div className="text-center">Día Pago</div>
-              <div className="text-right pr-4">Estado</div>
-            </div>
-            
-            {/* Filas de la tabla */}
-            <div className="divide-y divide-gray-700">
-              {filteredClientes.map((cliente) => (
-                <div 
+        <div className="block w-full overflow-x-auto rounded-2xl shadow-lg bg-gray-900/80 mt-6">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-800 sticky top-0 z-10">
+              <tr>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Cliente</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Plan</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Sistema</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Entrenador</th>
+                <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Pago Mensual</th>
+                <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Día de Pago</th>
+                <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider whitespace-nowrap">Estado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {filteredClientes.map(cliente => (
+                <tr
                   key={cliente.id}
+                  className="hover:bg-gray-800/60 transition-colors cursor-pointer focus-within:ring-2 focus-within:ring-blue-400 outline-none"
+                  tabIndex={0}
                   onClick={() => handleRowClick(cliente.id)}
-                  className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-900 hover:bg-gray-800/80 cursor-pointer transition-colors group"
                 >
-                  <div className="col-span-3 flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-                      {cliente.nombre.charAt(0)}
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-white font-medium">{cliente.nombre}</p>
-                      <p className="text-xs text-gray-400">ID: {cliente.id.toString().padStart(4, '0')}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="col-span-2 flex items-center">
-                    <div>
-                      <p className="text-white">{cliente.plan.split(' ')[0]}</p>
-                      <p className="text-xs text-gray-400">{cliente.plan.split(' ').slice(1).join(' ')}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="col-span-2 flex items-center text-gray-300">
-                    {cliente.sistema}
-                  </div>
-                  
-                  <div className="col-span-2 flex items-center">
-                    <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-300">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap font-medium text-white max-w-[160px] truncate">{cliente.nombre}</td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-gray-200">{cliente.plan}</td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-gray-300">{cliente.sistema}</td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap flex items-center gap-2 truncate justify-center md:justify-start">
+                    <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-300 flex-shrink-0">
                       {cliente.entrenador.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <span className="ml-2">{cliente.entrenador}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-end">
-                    <span className="px-2 py-1 bg-gray-800 rounded text-sm font-medium">
-                      RD$ {cliente.pagoMensual.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-center">
-                    <div className="h-8 w-8 rounded-full bg-blue-900/30 border border-blue-500 flex items-center justify-center text-blue-400 font-medium">
+                    <span className="hidden md:block">{cliente.entrenador}</span>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-amber-300 font-semibold">RD$ {cliente.pagoMensual.toLocaleString()}</td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center max-w-10">
+                    <div className="h-8 w-8 rounded-full bg-blue-900/30 border border-blue-500 flex items-center justify-center text-blue-400 font-medium mx-auto">
                       {cliente.diaDePago}
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-end pr-2">
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       cliente.estadoDelMes === 'Pagado' 
                         ? 'bg-green-900/30 text-green-400' 
@@ -217,11 +192,11 @@ export default function Clientes() {
                     }`}>
                       {cliente.estadoDelMes}
                     </span>
-                  </div>
-                </div>
+                  </td>
+                </tr>
               ))}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
@@ -229,7 +204,8 @@ export default function Clientes() {
             <div 
               key={cliente.id}
               onClick={() => handleRowClick(cliente.id)}
-              className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer border border-gray-700 hover:border-blue-500"
+              className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer border border-gray-700 hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-400 outline-none"
+              tabIndex={0}
             >
               <div className="p-4">
                 <div className="flex justify-between items-start mb-4">

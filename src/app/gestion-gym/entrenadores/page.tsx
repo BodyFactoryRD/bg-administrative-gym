@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { FiSearch, FiDownload, FiFilter, FiChevronDown, FiPlus } from 'react-icons/fi';
 import { FaUserTie, FaUsers, FaMoneyBillWave } from 'react-icons/fa';
+
 
 // Formateador de moneda
 const formatCurrency = (value: number) => {
@@ -30,6 +32,7 @@ export default function Entrenadores() {
     estado: ''
   });
   const [showFilters, setShowFilters] = useState(false);
+  const router = useRouter();
 
   const ENTRENADORES: Entrenador[] = [
     {
@@ -157,7 +160,6 @@ export default function Entrenadores() {
                   <option value="">Todos los estados</option>
                   <option value="activo">Activo</option>
                   <option value="inactivo">Inactivo</option>
-                  <option value="vacaciones">Vacaciones</option>
                 </select>
               </div>
             </div>
@@ -245,10 +247,12 @@ export default function Entrenadores() {
               <tbody className="divide-y divide-gray-700">
                 {filteredData.length > 0 ? (
                   filteredData.map((entrenador) => (
-                    <tr 
+                    <tr
                       key={entrenador.id}
                       className="hover:bg-gray-750/50 transition-colors cursor-pointer"
-                      onClick={() => console.log('Ver detalle del entrenador:', entrenador.id)}
+                      onClick={() => router.push(`/gestion-gym/entrenadores/${entrenador.id}`)}
+                      tabIndex={0}
+                      onKeyDown={e => { if (e.key === 'Enter') router.push(`/gestion-gym/entrenadores/${entrenador.id}`); }}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">

@@ -1,5 +1,6 @@
-import { notFound } from 'next/navigation';
-
+import { notFound } from "next/navigation";
+import { FiEdit, FiPlus, FiX, FiCheck, FiMail, FiPhone, FiUser, FiDollarSign, FiCalendar, FiArrowLeft } from "react-icons/fi";
+import Link from "next/link";
 
 // Datos de ejemplo - en una aplicación real, esto vendría de una API
 const CLIENTES = [
@@ -9,93 +10,198 @@ const CLIENTES = [
     plan: "Personal 3 dias x semana",
     sistema: "Signature",
     entrenador: "Acxel Ramses",
-    pagoMensual: 15000.00,
+    pagoMensual: 15000.0,
     diaDePago: 5,
     estadoDelMes: "Pagado",
     telefono: "809-555-1234",
     email: "karla@example.com",
-    fechaInicio: "2024-01-15",
-    direccion: "Calle Principal #123, Santo Domingo"
+    direccion: "Calle Principal #123, Santo Domingo",
+    pagos: [
+      { fecha: "2025-06-05", monto: 15000, estado: "Pagado" },
+      { fecha: "2025-05-05", monto: 15000, estado: "Pagado" },
+      { fecha: "2025-04-05", monto: 15000, estado: "Pagado" },
+    ],
   },
   // ... otros clientes
 ];
 
 export default function ClienteDetalle({ params }: { params: { id: string } }) {
   const cliente = CLIENTES.find(c => c.id === Number(params.id));
-  
+
   if (!cliente) {
     notFound();
   }
 
+  // Estadísticas
+  const totalPagado = cliente.pagos.filter(p => p.estado === "Pagado").reduce((acc, p) => acc + p.monto, 0);
+  const pagosActivos = cliente.pagos.filter(p => p.estado === "Pagado").length;
+  const pagosPendientes = cliente.pagos.filter(p => p.estado !== "Pagado").length;
+
   return (
-    <div className="p-6">
-      <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">{cliente.nombre}</h1>
-            <p className="text-gray-400">ID: {cliente.id}</p>
+    <div className="bg-gray-900 min-h-screen text-white p-4 sm:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <Link href="/gestion-gym/clientes" className="inline-flex items-center text-amber-400 hover:text-amber-300 mb-4">
+            <FiArrowLeft className="mr-2" /> Volver a Clientes
+          </Link>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+            <div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
+  <div className="w-20 h-20 rounded-full bg-amber-500 flex items-center justify-center text-3xl font-bold">
+    {cliente.nombre.split(" ").map(n => n[0]).join('').toUpperCase()}
+  </div>
+  <div className="flex-1 min-w-0">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      <h1 className="text-2xl md:text-3xl font-bold truncate">{cliente.nombre}</h1>
+      <div className="flex flex-row gap-2 ml-0 sm:ml-4 mt-2 sm:mt-0">
+        <button
+          className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          title="Editar Cliente"
+        >
+          <FiEdit className="text-lg" />
+        </button>
+        <button
+          className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-600 hover:bg-green-700 text-white shadow transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-green-400"
+          title="Registrar Pago"
+        >
+          <FiPlus className="text-lg" />
+        </button>
+        <button
+          className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white shadow transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-400"
+          title="Desactivar Cliente"
+        >
+          <FiX className="text-lg" />
+        </button>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 mt-2">
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+        cliente.estadoDelMes === 'Pagado'
+          ? 'bg-green-500/20 text-green-400'
+          : 'bg-red-500/20 text-red-400'
+      }`}>
+        {cliente.estadoDelMes}
+      </span>
+      <span className="text-xs text-gray-400">ID: {cliente.id}</span>
+    </div>
+  </div>
+</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                {/* Contacto */}
+                <div className="bg-gray-800/50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-400 mb-2">Contacto</h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-center text-gray-300">
+                      <FiMail className="mr-2 text-amber-400" />
+                      {cliente.email}
+                    </li>
+                    <li className="flex items-center text-gray-300">
+                      <FiPhone className="mr-2 text-amber-400" />
+                      {cliente.telefono}
+                    </li>
+                    <li className="flex items-center text-gray-300">
+                      <FiUser className="mr-2 text-amber-400" />
+                      {cliente.direccion}
+                    </li>
+                  </ul>
+                </div>
+                {/* Membresía */}
+                <div className="bg-gray-800/50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-400 mb-2">Membresía</h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-center text-gray-300">
+                      <FiDollarSign className="mr-2 text-amber-400" />
+                      {cliente.plan}
+                    </li>
+                    <li className="flex items-center text-gray-300">
+                      <span className="mr-2 text-amber-400">S</span>
+                      {cliente.sistema}
+                    </li>
+                    <li className="flex items-center text-gray-300">
+                      <span className="mr-2 text-amber-400">E</span>
+                      {cliente.entrenador}
+                    </li>
+                    <li className="flex items-center text-gray-300">
+                      <FiDollarSign className="mr-2 text-amber-400" />
+                      Pago Mensual: RD$ {cliente.pagoMensual.toLocaleString()}
+                    </li>
+                    <li className="flex items-center text-gray-300">
+                      <FiCalendar className="mr-2 text-amber-400" />
+                      Día de Pago: {cliente.diaDePago} de cada mes
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 w-full md:w-64 flex-shrink-0">
+              <h3 className="text-lg font-semibold text-amber-400 mb-4">Estadísticas</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-400">Total Pagado</p>
+                  <p className="text-2xl font-bold">RD$ {totalPagado.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Pagos Realizados</p>
+                  <p className="text-2xl font-bold">{pagosActivos}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Pagos Pendientes</p>
+                  <p className="text-2xl font-bold">{pagosPendientes}</p>
+                </div>
+              </div>
+            </div>
+
           </div>
-          <span className={`px-3 py-1 rounded-full text-sm ${cliente.estadoDelMes === 'Pagado' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
-            {cliente.estadoDelMes}
-          </span>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold border-b border-gray-700 pb-2">Información Personal</h2>
-            <div>
-              <p className="text-gray-400">Teléfono</p>
-              <p>{cliente.telefono}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Email</p>
-              <p>{cliente.email}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Dirección</p>
-              <p>{cliente.direccion}</p>
-            </div>
+        {/* Tabla de pagos */}
+        <div className="bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700/50 mt-8">
+          <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Registro de Pagos</h2>
+            <span className="bg-amber-500/10 text-amber-400 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {cliente.pagos.length} pagos
+            </span>
           </div>
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold border-b border-gray-700 pb-2">Membresía</h2>
-            <div>
-              <p className="text-gray-400">Plan</p>
-              <p>{cliente.plan}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Sistema</p>
-              <p>{cliente.sistema}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Entrenador</p>
-              <p>{cliente.entrenador}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Pago Mensual</p>
-              <p>RD$ {cliente.pagoMensual.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Día de Pago</p>
-              <p>{cliente.diaDePago} de cada mes</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Fecha de Inicio</p>
-              <p>{cliente.fechaInicio}</p>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-750">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Fecha</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Monto</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {cliente.pagos && cliente.pagos.length > 0 ? (
+                  cliente.pagos.map((pago, idx) => (
+                    <tr key={idx} className={`transition-all duration-150 ${idx % 2 === 0 ? "bg-gray-900/70" : "bg-gray-800/60"} hover:bg-amber-900/20`}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
+                        {new Date(pago.fecha).toLocaleDateString("es-DO", { year: "numeric", month: "short", day: "numeric" })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-amber-300">
+                        RD$ {pago.monto.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-base font-semibold shadow ${
+                          pago.estado === "Pagado"
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-red-500/20 text-red-400"
+                        }`} title={pago.estado === "Pagado" ? "Pago realizado correctamente" : "Pago pendiente"}>
+                          {pago.estado === "Pagado" ? <FiCheck className="text-green-400 text-xl" /> : <FiX className="text-red-400 text-xl" />}
+                          {pago.estado}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="text-center text-gray-400 py-6">
+                      No hay pagos registrados.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
-
-        <div className="mt-8 flex space-x-4">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            Editar Cliente
-          </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            Registrar Pago
-          </button>
-          <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-            Dar de Baja
-          </button>
         </div>
       </div>
     </div>
