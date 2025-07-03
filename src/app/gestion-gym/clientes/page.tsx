@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from "next/navigation"
 import { FaList, FaTh, FaSearch, FaFileExport, FaFilter, FaPlus } from 'react-icons/fa';
 import { FiPlus } from 'react-icons/fi';
+import Link from 'next/link';
 
 export const CLIENTES = [
   {
@@ -133,10 +134,10 @@ export default function Clientes() {
             </button>
           </div>
 
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white whitespace-nowrap" title="Nuevo Cliente">
+          <Link href="/gestion-gym/clientes/nuevo" className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 rounded-md text-gray-900 whitespace-nowrap" title="Nuevo Cliente">
             <FaPlus />
             <span className="hidden sm:inline">Nuevo Cliente</span>
-          </button>
+          </Link>
           
           <button 
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white whitespace-nowrap"
