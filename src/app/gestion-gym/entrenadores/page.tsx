@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { FiSearch, FiDownload, FiFilter, FiChevronDown, FiPlus } from 'react-icons/fi';
 import { FaUserTie, FaUsers, FaMoneyBillWave } from 'react-icons/fa';
-
+import { getEntrenadores, searchEntrenadores, getClientesPorEntrenador, Entrenador } from '@/utils/supabase/entrenadores';
 
 // Formateador de moneda
 const formatCurrency = (value: number) => {
@@ -16,14 +17,11 @@ const formatCurrency = (value: number) => {
   }).format(value).replace('DOP', 'RD$');
 };
 
-type Entrenador = {
-  id: number;
-  nombre: string;
-  email: string;
-  telefono: string;
+// Tipo para entrenador con datos adicionales para la UI
+type EntrenadorUI = Entrenador & {
   clientes: number;
+  clientes_count?: number;
   comisionMes: number;
-  estado: 'activo' | 'inactivo';
 };
 
 export default function Entrenadores() {
@@ -32,67 +30,89 @@ export default function Entrenadores() {
     estado: ''
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [entrenadores, setEntrenadores] = useState<EntrenadorUI[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const ENTRENADORES: Entrenador[] = [
-    {
-      id: 1,
-      nombre: 'Acxel Ramses',
-      email: 'acxel@bodyfactory.com',
-      telefono: '809-555-0101',
-      clientes: 12,
-      comisionMes: 42000.00,
-      estado: 'activo'
-    },
-    {
-      id: 2,
-      nombre: 'Mariel Jerez',
-      email: 'mariel@bodyfactory.com',
-      telefono: '809-555-0102',
-      clientes: 8,
-      comisionMes: 31500.00,
-      estado: 'activo'
-    },
-    {
-      id: 3,
-      nombre: 'Liz De León',
-      email: 'liz@bodyfactory.com',
-      telefono: '809-555-0103',
-      clientes: 15,
-      comisionMes: 52500.00,
-      estado: 'inactivo'
-    },
-  ];
+  // Cargar entrenadores desde Supabase
+  useEffect(() => {
+    const fetchEntrenadores = async () => {
+      setLoading(true);
+      try {
+        // Obtener entrenadores según la búsqueda
+        let entrenadores;
+        if (searchTerm) {
+          entrenadores = await searchEntrenadores(searchTerm);
+        } else {
+          entrenadores = await getEntrenadores();
+        }
+        
+        // Obtener el número real de clientes por entrenador
+        const entrenadorConClientes = await getClientesPorEntrenador();
+        
+        // Crear un mapa para acceder rápidamente al conteo de clientes
+        const clientesMap = new Map();
+        entrenadorConClientes.forEach(item => {
+          clientesMap.set(item.id, item.clientes_count);
+        });
+        
+        // Transformar los datos para incluir clientes reales y comisiones estimadas
+        const entrenadorData = entrenadores.map(entrenador => {
+          // Obtener el número real de clientes
+          const clientesCount = clientesMap.get(entrenador.id) || 0;
+          
+          // Calcular comisión basada en el número real de clientes y el porcentaje
+          // Asumimos un valor promedio de pago mensual por cliente de 2000 pesos
+          const pagoPromedioCliente = 2000;
+          const comisionPorcentaje = entrenador.comision_porcentaje || 10; // Valor por defecto 10%
+          const comisionEstimada = clientesCount * pagoPromedioCliente * (comisionPorcentaje / 100);
+          
+          return {
+            ...entrenador,
+            clientes: clientesCount, // Usar el número real de clientes
+            clientes_count: clientesCount,
+            comisionMes: comisionEstimada,
+          };
+        });
+        
+        setEntrenadores(entrenadorData);
+      } catch (error) {
+        console.error('Error al cargar entrenadores:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchEntrenadores();
+  }, [searchTerm]);
 
   // Filtrar datos
-  const filteredData = ENTRENADORES.filter(entrenador => {
-    const matchesSearch = 
-      entrenador.nombre.toLowerCase().includes(searchTerm.toLowerCase());
-      
+  const filteredData = entrenadores.filter(entrenador => {
     const matchesFilters = 
-      (!filters.estado || entrenador.estado === filters.estado);
+      (!filters.estado || (filters.estado === 'activo' ? entrenador.activo : !entrenador.activo));
 
-    return matchesSearch && matchesFilters;
+    return matchesFilters;
   });
 
   // Calcular totales
   const totales = {
-    entrenadores: ENTRENADORES.length,
-    activos: ENTRENADORES.filter(e => e.estado === 'activo').length,
-    clientes: ENTRENADORES.reduce((sum, e) => sum + e.clientes, 0),
-    comisiones: ENTRENADORES.reduce((sum, e) => sum + e.comisionMes, 0)
+    entrenadores: entrenadores.length,
+    activos: entrenadores.filter(e => e.activo).length,
+    clientes: entrenadores.reduce((sum, e) => sum + e.clientes, 0),
+    comisiones: entrenadores.reduce((sum, e) => sum + e.comisionMes, 0)
   };
 
 
 
   // Función para renderizar el estado
-  const renderEstado = (estado: string) => {
+  const renderEstado = (activo: boolean) => {
+    const estado = activo ? 'activo' : 'inactivo';
     const estados = {
       activo: { bg: 'bg-green-100 text-green-800', text: 'Activo' },
       inactivo: { bg: 'bg-red-100 text-red-800', text: 'Inactivo' }
     };
     
-    const estadoInfo = estados[estado as keyof typeof estados] || { bg: 'bg-gray-100 text-gray-800', text: estado };
+    const estadoInfo = estados[estado] || { bg: 'bg-gray-100 text-gray-800', text: estado };
     
     return (
       <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${estadoInfo.bg}`}>
@@ -129,15 +149,16 @@ export default function Entrenadores() {
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
             >
-              <FiFilter />
-              <span>Filtros</span>
-              <FiChevronDown className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              <FiFilter className="mr-2" />
+              Filtros
+              <FiChevronDown className={`ml-2 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
             
-            <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-              <FiPlus className="text-lg" />
+            <Link href="/gestion-gym/entrenadores/nuevo" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-white">
+              <FiPlus />
               <span className="hidden sm:inline">Nuevo Entrenador</span>
-            </button>
+              <span className="sm:hidden">Nuevo</span>
+            </Link>
             
             <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors">
               <FiDownload className="text-lg" />
@@ -245,7 +266,13 @@ export default function Entrenadores() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {filteredData.length > 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
+                      Cargando entrenadores...
+                    </td>
+                  </tr>
+                ) : filteredData.length > 0 ? (
                   filteredData.map((entrenador) => (
                     <tr
                       key={entrenador.id}
@@ -260,14 +287,14 @@ export default function Entrenadores() {
                             {entrenador.nombre.charAt(0)}
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-white">{entrenador.nombre}</div>
-                            <div className="text-xs text-gray-400">{renderEstado(entrenador.estado)}</div>
+                            <div className="text-sm font-medium text-white">{entrenador.nombre} {entrenador.apellido}</div>
+                            <div className="text-xs text-gray-400">{renderEstado(entrenador.activo)}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-200">{entrenador.email}</div>
-                        <div className="text-xs text-gray-400">{entrenador.telefono}</div>
+                        <div className="text-sm text-gray-200">{entrenador.email || 'No disponible'}</div>
+                        <div className="text-xs text-gray-400">{entrenador.telefono || 'No disponible'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="text-sm font-medium text-white">{entrenador.clientes}</div>

@@ -2,18 +2,40 @@
 
 import { useState } from 'react';
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import Image from 'next/image';
+import { login } from './actions';
+import { useFormStatus } from 'react-dom';
+import { useRouter } from 'next/navigation';
+
+// Componente para el botón de envío con estado de carga
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    
+    return (
+        <button
+            type="submit"
+            disabled={pending}
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-900 bg-amber-500 hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-amber-500 transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+            {pending ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+        </button>
+    );
+}
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const router = useRouter();
     
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Aquí iría la lógica de autenticación
-        console.log('Login attempt with:', { email, password });
-    };
+    // Función wrapper para manejar el resultado del server action
+    async function handleLogin(formData: FormData) {
+        setErrorMessage('');
+        const result = await login(formData);
+        
+        // Si hay un error y no se redirigió, mostrar el mensaje de error
+        if (result?.error) {
+            setErrorMessage(result.error);
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -32,7 +54,12 @@ export default function Login() {
                     <div className="p-8">
                         <h2 className="text-2xl font-bold text-center text-white mb-6">Iniciar Sesión</h2>
                         
-                        <form onSubmit={handleSubmit}>
+                        <form action={handleLogin}>
+                            {errorMessage && (
+                                <div className="mb-4 p-3 bg-red-900/50 border border-red-500 text-red-200 rounded-md text-sm">
+                                    {errorMessage}
+                                </div>
+                            )}
                             {/* Campo de email */}
                             <div className="mb-6">
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Correo Electrónico</label>
@@ -46,8 +73,7 @@ export default function Login() {
                                         type="email"
                                         autoComplete="email"
                                         required
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        defaultValue=""
                                         className="block w-full pl-10 pr-3 py-2.5 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-400"
                                         placeholder="usuario@ejemplo.com"
                                     />
@@ -72,8 +98,7 @@ export default function Login() {
                                         type={showPassword ? 'text' : 'password'}
                                         autoComplete="current-password"
                                         required
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        defaultValue=""
                                         className="block w-full pl-10 pr-10 py-2.5 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-400"
                                         placeholder="••••••••"
                                     />
@@ -97,12 +122,7 @@ export default function Login() {
                             
                             {/* Botón de inicio de sesión */}
                             <div>
-                                <button
-                                    type="submit"
-                                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-900 bg-amber-500 hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-amber-500 transition-colors duration-200"
-                                >
-                                    Iniciar Sesión
-                                </button>
+                                <SubmitButton />
                             </div>
                         </form>
                     </div>
