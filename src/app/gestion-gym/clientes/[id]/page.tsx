@@ -1,40 +1,14 @@
 import { notFound } from "next/navigation";
-import { FiEdit, FiPlus, FiX, FiCheck, FiMail, FiPhone, FiUser, FiDollarSign, FiCalendar, FiArrowLeft } from "react-icons/fi";
+import { FiEdit, FiPlus, FiX, FiCheck, FiMail, FiPhone, FiUser, FiDollarSign, FiCalendar, FiArrowLeft, FiCreditCard } from "react-icons/fi";
 import Link from "next/link";
 import { getClienteById, Cliente } from '@/utils/supabase/clientes';
-import { getEntrenadorById } from '@/utils/supabase/entrenadores';
+import { getEntrenadorById, Entrenador } from '@/utils/supabase/entrenadores';
+import { getPagosByClienteId, Pago } from '@/utils/supabase/pagos';
+import PaymentButtonWrapper from './PaymentButtonWrapper';
 
-// Interfaz para los pagos (que implementaremos más adelante)
-interface Pago {
-  id: string;
-  fecha: string;
-  monto: number;
-  estado: 'Pagado' | 'Pendiente';
-  cliente_id: string;
-  created_at?: string;
-}
+// Esta interfaz es solo para la visualización en esta página, usamos la real de pagos.ts
 
-// Función para obtener los pagos de un cliente (simulada por ahora)
-async function getPagosCliente(clienteId: string): Promise<Pago[]> {
-  // En una implementación real, esto obtendría los pagos desde Supabase
-  // Por ahora, devolvemos datos simulados basados en el ID del cliente
-  return [
-    { 
-      id: `${clienteId}-1`, 
-      fecha: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), 
-      monto: 15000, 
-      estado: 'Pagado',
-      cliente_id: clienteId 
-    },
-    { 
-      id: `${clienteId}-2`, 
-      fecha: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), 
-      monto: 15000, 
-      estado: 'Pagado',
-      cliente_id: clienteId 
-    },
-  ];
-}
+// Ahora usamos la función real de pagos.ts
 
 export default async function ClienteDetalle({ params }: { params: Promise<{ id: string }> }) {
   try {
@@ -63,13 +37,13 @@ export default async function ClienteDetalle({ params }: { params: Promise<{ id:
       }
     }
   
-    // Obtener pagos del cliente
-    const pagos = await getPagosCliente(cliente.id);
+    // Obtener pagos del cliente desde Supabase
+    const pagos = await getPagosByClienteId(cliente.id);
   
     // Estadísticas
-    const totalPagado = pagos.filter((p: Pago) => p.estado === "Pagado").reduce((acc: number, p: Pago) => acc + p.monto, 0);
-    const pagosActivos = pagos.filter((p: Pago) => p.estado === "Pagado").length;
-    const pagosPendientes = pagos.filter((p: Pago) => p.estado !== "Pagado").length;
+    const totalPagado = pagos.reduce((acc: number, p: Pago) => acc + p.monto, 0);
+    const pagosActivos = pagos.length;
+    const pagosPendientes = 0; // En el nuevo sistema todos los pagos registrados son pagados
 
     return (
       <div className="bg-gray-900 min-h-screen text-white p-4 sm:p-6 lg:p-8">
@@ -88,6 +62,10 @@ export default async function ClienteDetalle({ params }: { params: Promise<{ id:
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <h1 className="text-2xl md:text-3xl font-bold truncate">{cliente.nombre} {cliente.apellido}</h1>
                     <div className="flex flex-row gap-2 ml-0 sm:ml-4 mt-2 sm:mt-0">
+                      <PaymentButtonWrapper 
+                        cliente={JSON.stringify(cliente)} 
+                        entrenador={cliente.entrenador ? JSON.stringify(await getEntrenadorById(cliente.entrenador)) : null} 
+                      />
                       <button
                         className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         title="Editar Cliente"
@@ -206,18 +184,18 @@ export default async function ClienteDetalle({ params }: { params: Promise<{ id:
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {pagos.length > 0 ? (
-                  pagos.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()).map((pago: Pago, idx: number) => (
+                  pagos.sort((a, b) => new Date(b.fecha_pago).getTime() - new Date(a.fecha_pago).getTime()).map((pago: Pago, idx: number) => (
                     <tr key={idx} className={`transition-all duration-150 ${idx % 2 === 0 ? "bg-gray-900/70" : "bg-gray-800/60"} hover:bg-amber-900/20`}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
-                        {new Date(pago.fecha).toLocaleDateString("es-DO", { year: "numeric", month: "short", day: "numeric" })}
+                        {new Date(pago.fecha_pago).toLocaleDateString("es-DO", { year: "numeric", month: "short", day: "numeric" })}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-amber-300">
                         RD$ {pago.monto.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-base font-semibold shadow ${pago.estado === "Pagado" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`} title={pago.estado === "Pagado" ? "Pago realizado correctamente" : "Pago pendiente"}>
-                          {pago.estado === "Pagado" ? <FiCheck className="text-green-400 text-xl" /> : <FiX className="text-red-400 text-xl" />}
-                          {pago.estado}
+                        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-base font-semibold shadow bg-green-500/20 text-green-400" title="Pago realizado correctamente">
+                          <FiCheck className="text-green-400 text-xl" />
+                          Pagado
                         </span>
                       </td>
                     </tr>
@@ -234,6 +212,8 @@ export default async function ClienteDetalle({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
+      
+      {/* El modal ahora se maneja en el componente ClientePaymentButton */}
     </div>
   );
   } catch (error) {
